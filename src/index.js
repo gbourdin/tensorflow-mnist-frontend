@@ -1,19 +1,8 @@
 import './style.css';
-import print from './print.js';
-
-function component() {
-  var element = document.createElement('div');
-  var btn = document.createElement('button');
+import Print from './print.js';
   
-  element.innerHTML = 'Test';
-  element.classList.add('hello');
-  
-  btn.innerHTML = 'Click me and check the console';
-  btn.onclick = print;
-
-  element.appendChild(btn);
-
-  return element;
+const print = new Print();
+const btn = document.getElementById('clear');
+btn.onclick = () => {
+  print.initialize();
 }
-
-document.body.appendChild(component());
