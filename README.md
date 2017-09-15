@@ -1,4 +1,4 @@
-# Tensorflow MNIST
+# Tensorflow MNIST Frontend
 
 See backend repo: https://github.com/patrykomiotek/tensorflow-mnist-backend
 
