@@ -5,10 +5,20 @@ class Print {
         this.canvas.width = 449; // 16 * 28 + 1
         this.canvas.height = 449; // 16 * 28 + 1
         this.ctx = this.canvas.getContext('2d');
-        this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
-        this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
-        this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+        this.bindListeners();
         this.initialize();
+    }
+
+    bindListeners() {
+        this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+        this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+        this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+        this.canvas.addEventListener('touchstart', this.onTouchStart.bind(this), false);
+        this.canvas.addEventListener('touchend', this.onTouchEnd.bind(this), false);
+        this.canvas.addEventListener('touchmove', this.onTouchMove.bind(this), false);
+        document.body.addEventListener('touchstart', this.preventBodyMove.bind(this), false);
+        document.body.addEventListener('touchend', this.preventBodyMove.bind(this), false);
+        document.body.addEventListener('touchmove', this.preventBodyMove.bind(this), false);
     }
 
     initialize() {
@@ -31,12 +41,16 @@ class Print {
             this.ctx.stroke();
         }
         this.drawInput();
-        // $('#output td').text('').removeClass('success');
+    }
 
+    preventBodyMove(e) {
+        if (e.target === this.canvas) {
+            e.preventDefault();
+        }
     }
 
     onMouseDown(e) {
-        this.canvas.style.cursor = 'default';
+        this.canvas.style.cursor = 'crosshair';
         this.drawing = true;
         this.prev = this.getPosition(e.clientX, e.clientY);
     }
@@ -68,6 +82,29 @@ class Print {
         };
     }
 
+    onTouchStart(e) {
+        let touch = e.touches[0];
+        let mouseEvent = new MouseEvent('mousedown', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        this.canvas.dispatchEvent(mouseEvent);
+    }
+
+    onTouchEnd() {
+        let mouseEvent = new MouseEvent('mouseup', {});
+        this.canvas.dispatchEvent(mouseEvent);
+    }
+
+    onTouchMove(e) {
+        let touch = e.touches[0];
+        let mouseEvent = new MouseEvent('mousemove', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        this.canvas.dispatchEvent(mouseEvent);
+    }
+
     drawInput() {
         let ctx = this.input.getContext('2d');
         let img = new Image();
@@ -88,9 +125,6 @@ class Print {
                 return;
             }
 
-            console.log(inputs);
-
-            //const response = api.get('/status');
             fetch('/api/mnist', {
                 method: 'POST',
                 headers: {
@@ -98,11 +132,9 @@ class Print {
                 },
                 body: JSON.stringify(inputs)
             }).then(response => {
-                console.log('response', response);
                 return response.text()
             }).then(body => {
                 const data = JSON.parse(body);
-                console.log('data', data);
                 for (let i = 0; i < 2; i++) {
                     let max = 0;
                     let max_index = 0;
@@ -120,13 +152,11 @@ class Print {
                         if (value > 999) {
                             text = '1.000';
                         }
-                        let row = document.querySelectorAll('#output tr')[j + 1];
-                        let cell = row.getElementsByTagName('td')[i];
+                        let cell = document.querySelectorAll('#output tr')[j + 1].getElementsByTagName('td')[i];
                         cell.textContent = text;
                     }
                     for (let j = 0; j < 10; j++) {
-                        let row = document.querySelectorAll('#output tr')[j + 1];
-                        let cell = row.getElementsByTagName('td')[i];
+                        let cell = document.querySelectorAll('#output tr')[j + 1].getElementsByTagName('td')[i];
                         if (j === max_index) {
                             cell.classList.add('success');
                         } else {
